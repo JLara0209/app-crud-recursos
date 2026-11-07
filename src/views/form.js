@@ -1,25 +1,32 @@
 import { TIPOS, TEMAS, NIVELES } from '../data/options.js';
-import { create } from '../services/storage.js';
+import { create, update } from '../services/storage.js';
 import { showToast } from '../components/toast.js';
 
-// Renderiza el formulario para registrar un recurso nuevo
-export function renderForm(app, resource = null) {
+// Renderiza el formulario para registrar o editar un recurso
+export function renderForm(app, recurso = null) {
   if (!app) return;
 
   const tipoOptions = [
     '<option value="">Selecciona...</option>',
-    ...TIPOS.map((item) => `<option value="${item.value}">${item.label}</option>`)
+    ...TIPOS.map((item) => {
+      const selected = recurso && recurso.tipo === item.value ? 'selected' : '';
+      return `<option value="${item.value}" ${selected}>${item.label}</option>`;
+    })
   ].join('');
 
   const temaOptions = [
     '<option value="">Selecciona...</option>',
-    ...TEMAS.map((item) => `<option value="${item.value}">${item.label}</option>`)
+    ...TEMAS.map((item) => {
+      const selected = recurso && recurso.tema === item.value ? 'selected' : '';
+      return `<option value="${item.value}" ${selected}>${item.label}</option>`;
+    })
   ].join('');
 
+  const currentNivel = recurso ? recurso.nivel : 'basico';
   const nivelRadios = NIVELES.map(
     (item) => `
       <label class="form-radio-label">
-        <input type="radio" name="nivel" value="${item.value}" ${item.value === 'basico' ? 'checked' : ''} />
+        <input type="radio" name="nivel" value="${item.value}" ${item.value === currentNivel ? 'checked' : ''} />
         ${item.label}
       </label>
     `
@@ -27,18 +34,18 @@ export function renderForm(app, resource = null) {
 
   app.innerHTML = `
     <div class="container form-page">
-      <h1 class="page-title">Nuevo recurso</h1>
+      <h1 class="page-title">${recurso ? 'Editar recurso' : 'Nuevo recurso'}</h1>
       <div class="card form-card">
         <form id="resource-form" novalidate>
           <div class="form-group">
             <label class="form-label" for="titulo">Título</label>
-            <input id="titulo" name="titulo" type="text" class="input" placeholder="Nombre del recurso" />
+            <input id="titulo" name="titulo" type="text" class="input" placeholder="Nombre del recurso" value="${recurso ? recurso.titulo : ''}" />
             <span class="form-error" id="error-titulo"></span>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="url">URL</label>
-            <input id="url" name="url" type="url" class="input" placeholder="https://ejemplo.com" />
+            <input id="url" name="url" type="url" class="input" placeholder="https://ejemplo.com" value="${recurso ? recurso.url : ''}" />
             <span class="form-error" id="error-url"></span>
           </div>
 
@@ -67,14 +74,14 @@ export function renderForm(app, resource = null) {
 
           <div class="form-group">
             <label class="form-checkbox-label">
-              <input id="favorito" name="favorito" type="checkbox" />
+              <input id="favorito" name="favorito" type="checkbox" ${recurso && recurso.favorito ? 'checked' : ''} />
               Favorito
             </label>
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Guardar</button>
-            <a href="#/" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">${recurso ? 'Actualizar' : 'Guardar'}</button>
+            <a href="#/recursos" class="btn btn-secondary">Cancelar</a>
           </div>
         </form>
       </div>
@@ -154,16 +161,23 @@ export function renderForm(app, resource = null) {
 
     if (hasErrors) return;
 
-    create({
+    const resourceData = {
       titulo: data.titulo.trim(),
       url: data.url.trim(),
       tipo: data.tipo,
       tema: data.tema,
       nivel: data.nivel || 'basico',
       favorito: data.favorito
-    });
+    };
 
-    showToast('Recurso guardado');
+    if (recurso) {
+      update(recurso.id, resourceData);
+      showToast('Recurso actualizado');
+    } else {
+      create(resourceData);
+      showToast('Recurso guardado');
+    }
+
     form.reset();
     window.location.hash = '#/recursos';
   });
