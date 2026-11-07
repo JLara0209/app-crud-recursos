@@ -1,13 +1,13 @@
 import { renderHome } from './views/home.js';
 import { renderForm } from './views/form.js';
-import { renderList } from './views/list.js';
+import { renderRecursos } from './views/recursos.js';
 import { setActiveLink } from './components/navbar.js';
 import { getById } from './services/storage.js';
 import { showToast } from './components/toast.js';
 
 export const routes = {
   '#/': renderHome,
-  '#/recursos': renderList,
+  '#/recursos': renderRecursos,
   '#/nuevo': renderForm,
 };
 

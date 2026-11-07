@@ -63,3 +63,18 @@ export function update(id, data) {
   return updatedResource;
 }
 
+// Elimina un recurso por su id usando splice y guarda los cambios
+export function deleteById(id) {
+  const resources = getAll();
+  const index = resources.findIndex((item) => item.id === id);
+
+  if (index === -1) {
+    return false;
+  }
+
+  resources.splice(index, 1);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(resources));
+  return true;
+}
+
+
